@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saliver JARVIS HUD</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #000428, #004e92);
+            color: #00e5ff;
+            overflow: hidden;
+        }
+
+        .hud {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .central-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+            border: 1px solid #00e5ff;
+            width: 60%;
+        }
+
+        .clock {
+            font-size: 48px;
+            margin-bottom: 20px;
+            border: 2px solid #00e5ff;
+            padding: 10px;
+            border-radius: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            margin-right: 10px;
+        }
+
+        .input-group input {
+            padding: 10px;
+            border: 1px solid #00e5ff;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #00e5ff;
+        }
+
+        .status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .success {
+            background-color: green;
+        }
+
+        .failure {
+            background-color: red;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #00e5ff;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #009bdb;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px #00e5ff; }
+            50% { box-shadow: 0 0 20px #00e5ff; }
+            100% { box-shadow: 0 0 5px #00e5ff; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hud">
+        <div class="central-display">
+            <div class="clock" id="clock">0</div>
+            <div class="input-group">
+                <label for="bankAccount">Bank Account:</label>
+                <input type="text" id="bankAccount" placeholder="Enter bank account number">
+                <button class="btn" id="btnSend">Send SEC</button>
+            </div>
+            <div id="status"></div>
+        </div>
+    </div>
+    <script>
+        let customSec = 100;
+        const maxSec = 1000;
+        const conversionFactor = 100000000000000000000;
+        const allowedAccounts = ['1976278463', '20057942287'];
+
+        function updateClock() {
+            const clock = document.getElementById('clock');
+            if (customSec <= maxSec) {
+                clock.textContent = customSec;
+                customSec++;
+            }
+        }
+
+        setInterval(updateClock, 1000);
+
+        function sendToAccount() {
+            const bankAccount = document.getElementById('bankAccount').value;
+            const sec = document.getElementById('clock').textContent;
+            const convertedSec = sec * conversionFactor;
+
+            if (!allowedAccounts.includes(bankAccount)) {
+                alert("Please enter a valid bank account number (1976278463 or 20057942287).");
+                return;
+            }
+
+            fetch('/send_sec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    bank_account: bankAccount,
+                    converted_sec: convertedSec 
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('status').innerHTML = '<div class="status-dot success"></div>';
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                document.getElementById('status').innerHTML = '<div class="status-dot failure"></div>';
+                console.error('Error:', error);
+            });
+        }
+
+        document.getElementById('btnSend').addEventListener('click', sendToAccount);
+    </script>
+</body>
+</html>
+
